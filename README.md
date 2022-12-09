@@ -32,3 +32,6 @@ Copyright 2022  Qiu Renxiang
   2. 请使用 pdfLaTeX编译
   3. 修改、使用、发布本文档请务必遵循 LaTeX Project Public License
   4. 不需要的注释可以尽情删除
+  
+![image](https://user-images.githubusercontent.com/42570255/206701935-c45cace4-9992-4821-8879-31ccfac85b22.png)
+
