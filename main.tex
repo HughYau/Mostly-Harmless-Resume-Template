@@ -1,0 +1,177 @@
+%*********************************************************************
+% 基本无害的简历模板
+% Mostly Harmless Resume Template
+% Copyright 2022  Qiu Renxiang
+% 2022/12/09 alpha
+
+% 本模板在https://github.com/sb2nov/resume基础上进行改进，主要变化有：
+% 1.出于个人审美，对布局、文字和段落之间的间距进行部分修改
+% 2.对部分功能的逻辑进行修改，如文档类、页边距、heading的表达逻辑（原模板采用表格命令实现，若字数较多，会出现不同段落文字无法重叠的问题）等，增加易用性和稳健性。
+
+% 使用示例：
+% \section{Professional Experience}
+%     \resumeHeading{项目名称}{地点}{角色}{时间}
+%     \resumeItemListStart
+%     \resumeItemWithoutTitle{内容一}
+%     \resumeItemWithoutTitle{内容二}
+%     \resumeItemListEnd
+
+%     \resumeHeading{项目名称}{地点}{角色}{时间}
+%     \resumeItemListStart
+%     \resumeItem{小标题一：}{内容一}
+%     \resumeItemW{小标题二：}{内容二}
+%     \resumeItemListEnd
+
+% 如果你有任何建议和疑问请发送邮件至,协助我做的更好。
+% 重要提示：
+%   1. 请确保使用 UTF-8 编码保存
+%   2. 请使用 pdfLaTeX编译
+%   3. 修改、使用、发布本文档请务必遵循 LaTeX Project Public License
+%   4. 不需要的注释可以尽情删除
+%*********************************************************************
+\documentclass[10.5pt,a4paper]{extarticle}%这里可以更改全局字号
+\usepackage{mathptmx}%Times New Roman字体
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[pdftex]{hyperref}
+\usepackage{fancyhdr}
+\usepackage{geometry}
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\usepackage{lipsum}
+
+%调整页边距
+
+\geometry{left=1.5cm,right=1.5cm,top=1cm,bottom=1cm}
+
+
+\urlstyle{rm}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-10pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-6pt}]
+
+%Ensure that generate pdf is machine readable/ATS parsable
+\pdfgentounicode=1
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[2]{
+  \vspace{-2pt}\item\small{
+    \textbf{#1}{: #2 \vspace{-4pt}}
+  }
+}
+
+\newcommand{\resumeItemWithoutTitle}[1]{
+  \vspace{-3pt}\item\small{
+    {#1}\vspace{-5pt}
+  }
+}
+
+\newcommand{\resumeHeading}[4]{
+\textbf{#1}\hfill #2\\
+  \textit{\small#3} \hfill \textit{\small #4} \\
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \item
+  \textbf{#1}\hfill #2\\
+  \textit{\small#3} \hfill \textit{\small #4} \\
+}
+
+
+\newcommand{\resumeSubItem}[2]{\resumeItem{#1}{#2}\vspace{-3pt}}
+
+\renewcommand{\labelitemii}{$\circ$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=*]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=*]\vspace{-5pt}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+%-----------------------------
+%%%%%%  CV STARTS HERE  %%%%%%
+
+\begin{document}
+
+%----------HEADING-----------------
+\begin{center}
+    \textbf{{\huge Renxiang Qiu}}\\
+Email: \href{qrx_math@ruc.edu.cn}{qrx\_math@ruc.edu.cn} $\vert$ Mobile: +86-1xxxxxxxxxx $\vert$ Address: Beijing, China
+% $\vert$GitHub: \href{https://github.com/HughYau}{https://github.com/HughYau}
+\end{center}
+
+\vspace{-10pt}
+
+\section{Education}
+    \resumeHeading
+      {Renmin University of China (RUC), School of Information}{Beijing}
+      {B.S. in Mathematics and Applied Mathematics \& B.A. in Public Finance, Minor in Cognitive Science}{Sep 2018 - Jun 2022}
+      \resumeItemListStart
+      \resumeItemWithoutTitle{\scriptsize  \footnotesize{\textbf{GPA: }XX~~~(\textbf{Rank: }XXX})}
+      \resumeItemWithoutTitle{\scriptsize  \footnotesize{\textbf{Honors \& Awards:} \lipsum[66]}}
+      \resumeItemWithoutTitle{\scriptsize  \footnotesize{\textbf{Relevant Courses:} \lipsum[66]}}
+	 \resumeItemListEnd
+
+\vspace{0pt}
+\section{Professional Experience}
+    \resumeHeading{XXXX}{Beijing}
+    {XXXX}{Sep 2022 - Present}
+    \resumeItemListStart
+   \resumeItemWithoutTitle{\lipsum[66]}
+
+    \resumeItemWithoutTitle{\lipsum[66]}
+    \resumeItemWithoutTitle{\lipsum[75]}
+    \resumeItemListEnd
+
+
+
+\vspace{0pt}
+\section{Research Experience}
+    \resumeHeading{XXXXXXXXXX}{}
+    {Author [Supervised by XXXX]}{Mar 2021 - Jun 2022}
+    \resumeItemListStart
+    \resumeItemWithoutTitle{\lipsum[66]}
+    \resumeItemWithoutTitle{\lipsum[66]}
+    \resumeItemWithoutTitle{\lipsum[66]}
+    \resumeItemListEnd
+    
+    \resumeHeading{XXXXXXXXXX}{}
+    {Author [Supervised by XXXX]}{Mar 2021 - Jun 2022}
+    \resumeItemListStart
+    \resumeItemWithoutTitle{\lipsum[75]}
+    \resumeItemWithoutTitle{\lipsum[66]}
+    \resumeItemListEnd
+
+    
+\vspace{0pt}
+\section{Extracurricular Activities}
+    \resumeHeading{XXXXXXXX}{}
+    {Member}{Aug 2022}
+    \resumeItemListStart
+    \resumeItemWithoutTitle{\lipsum[75]}
+    \resumeItemListEnd
+    
+
+\vspace{0pt}
+\section{Additional Information}
+    \vspace{7pt}
+    \resumeItemListStart
+    \resumeItemWithoutTitle{\textbf{Programming Languages:} Python (proficient), SQL (proficient), C/C++ (familiar) ~~~\textbf{Tools:} \LaTeX, XXX, XXX} 
+    \resumeItemWithoutTitle{\textbf{Teaching Assistant:} XXXXXXXX}
+    \resumeItemWithoutTitle{\lipsum[75]}
+    \resumeItemListEnd
+\end{document}
