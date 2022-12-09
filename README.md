@@ -1,7 +1,9 @@
 # Mostly-Harmless-Resume-Template
 # 基本无害的简历模板
 Mostly Harmless Resume Template
+
 Copyright 2022  Qiu Renxiang
+
 2022/12/09 alpha
 
 本模板在https://github.com/sb2nov/resume
