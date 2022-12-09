@@ -23,7 +23,7 @@ Copyright 2022  Qiu Renxiang
     \resumeHeading{项目名称}{地点}{角色}{时间}
     \resumeItemListStart
     \resumeItem{小标题一：}{内容一}
-    \resumeItemW{小标题二：}{内容二}
+    \resumeItem{小标题二：}{内容二}
     \resumeItemListEnd
 
 如果你有任何建议和疑问请发送邮件至,协助我做的更好。
