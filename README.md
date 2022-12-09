@@ -26,7 +26,7 @@ Copyright 2022  Qiu Renxiang
     \resumeItem{小标题二：}{内容二}
     \resumeItemListEnd
 
-如果你有任何建议和疑问请发送邮件至,协助我做的更好。
+
 重要提示：
   1. 请确保使用 UTF-8 编码保存
   2. 请使用 pdfLaTeX编译
