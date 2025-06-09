@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交互式简历生成器 - Interactive Resume Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <style>
+        /*
+         * 主体样式，模拟纸张效果和字体
+         */
+        body {
+            background-color: #f7f7f7; /* 更柔和的背景色 */
+            font-family: 'PT Serif', 'Times New Roman', serif;
+        }
+
+        /* 简历容器样式，模拟A4纸张 */
+        #resume-paper {
+            width: 21cm;
+            min-height: 29.7cm;
+            padding: 1cm 1.5cm;
+            margin: 2rem auto;
+            background: white;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08); /* 更精致的阴影 */
+            color: #1a1a1a;
+            line-height: 1.25;
+        }
+
+        /*
+         * contenteditable元素的占位符效果
+         */
+        [contenteditable="true"]:empty:before {
+            content: attr(placeholder);
+            color: #a0aec0; /* 柔和的占位符颜色 */
+            cursor: text;
+        }
+
+        /*
+         * LaTeX 间距精确还原
+         */
+        .header { margin-bottom: -10pt; }
+        .section { margin-top: 10pt; }
+        
+        .section-title {
+            font-size: 1.2em;
+            font-variant: small-caps;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            margin-bottom: -4pt;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 100%;
+            border-bottom: 0.75pt solid black;
+            margin-top: 2pt;
+            margin-bottom: 8pt;
+        }
+
+        .entry { margin-bottom: 8pt; }
+        .entry-heading { margin-bottom: 1pt; }
+
+        .item-list {
+            margin-top: -5pt;
+            margin-bottom: -5pt;
+            list-style-type: disc;
+            list-style-position: outside;
+            padding-left: 1.2rem;
+        }
+        
+        .item {
+            margin-top: -3pt;
+            padding-bottom: 2pt;
+        }
+        
+        /*
+         * 交互按钮样式 (UI 优化)
+         */
+        .action-button {
+            position: absolute;
+            background-color: #4299e1; /* 蓝色基调 */
+            color: white;
+            border-radius: 9999px;
+            width: 24px;
+            height: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.2s ease-in-out;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            user-select: none;
+            transform: scale(0.8);
+        }
+
+        .group:hover .action-button {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .action-button:hover {
+            transform: scale(1.15);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+        }
+        
+        .btn-add { font-size: 18px; } /* “+” 按钮 */
+        .btn-remove { background-color: #f56565; font-size: 20px; line-height: 1; } /* “×” 按钮 */
+        .btn-remove:hover { background-color: #e53e3e; }
+
+
+        /*
+         * 打印样式
+         */
+        @media print {
+            .no-print { display: none !important; }
+            body { background-color: white; margin: 0; }
+            #resume-paper {
+                margin: 0;
+                padding: 1cm 1.5cm;
+                width: auto;
+                min-height: auto;
+                box-shadow: none;
+                border: none;
+            }
+        }
+    </style>
+</head>
+<body class="text-[10.5pt]">
+
+    <header class="no-print bg-white shadow-md p-4 sticky top-0 z-50 flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-bold">交互式简历生成器 / Interactive Resume Builder</h1>
+            <p class="text-sm text-gray-500 mt-1">专为学术和极简风格设计 / Designed for Academic & Minimalist Styles</p>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="text-right">
+                <button id="import-button" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition-all duration-200">导入JSON<br>Load JSON</button>
+                <button id="export-button" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition-all duration-200">导出JSON<br>Export JSON</button>
+            </div>
+            <div class="text-right border-l pl-4">
+                <button id="print-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-lg">
+                    打印为PDF(Save)
+                </button>
+                <p class="text-xs text-gray-500 mt-2 max-w-xs">
+                    <b>打印提示:</b> 请在系统打印对话框的“更多设置”中取消勾选“页眉和页脚”以获得最佳效果。
+                    <br>
+                    <b>Print Tip:</b> In "More settings", uncheck "Headers and footers".
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <main id="resume-paper">
+        <!-- 简历内容将由JavaScript动态生成并插入到这里 -->
+    </main>
+    
+    <div class="no-print flex justify-center my-8">
+        <button id="add-section-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+            + 添加新模块 / Add New Section
+        </button>
+    </div>
+
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        const resumeContainer = document.getElementById('resume-paper');
+        const storageKey = 'interactiveResumeData';
+        
+        // --- 数据模型 ---
+        const defaultData = {
+            header: {
+                name: "Hugh Qiu",
+                email: "xxx@ruc.edu.cn",
+                phone: "+86-1xxxxxxxxxx",
+                address: "Beijing, China",
+                link: "github.com/HughYau"
+            },
+            sections: [
+                {
+                    title: "Education",
+                    entries: [
+                        {
+                            mainTitle: "Renmin University of China (RUC)",
+                            location: "Beijing",
+                            subTitle: "B.S. in Mathematics and Applied Mathematics & B.A. in Public Finance",
+                            date: "Sep 2018 - Jun 2022",
+                            items: [
+                                "<b>GPA:</b> XX (<b>Rank:</b> XXX)",
+                                "<b>Honors & Awards:</b> National Scholarship, Merit Student, etc.",
+                                "<b>Relevant Courses:</b> Mathematical Analysis, Advanced Algebra, Probability and Statistics, etc."
+                            ]
+                        }
+                    ]
+                },
+                {
+                    title: "Professional Experience",
+                    entries: [
+                        {
+                            mainTitle: "Company Name",
+                            location: "Beijing",
+                            subTitle: "Your Role (e.g., Software Engineer Intern)",
+                            date: "Sep 2022 - Present",
+                            items: [
+                                "Describe your first responsibility or achievement here. Be specific and use action verbs.",
+                                "Describe your second responsibility. Quantify your impact whenever possible.",
+                                "This project resulted in a 20% increase in user engagement."
+                            ]
+                        }
+                    ]
+                },
+                {
+                    title: "Research Experience",
+                    entries: [
+                        {
+                            mainTitle: "Name of Your Research Project",
+                            location: "",
+                            subTitle: "Author [Supervised by Prof. XXXX]",
+                            date: "Mar 2021 - Jun 2022",
+                            items: [
+                                "Researched on the topic of X, employing methods Y and Z.",
+                                "Developed a novel algorithm that improved performance by X%.",
+                                "Published findings in [Conference/Journal Name] or prepared a manuscript for submission."
+                            ]
+                        }
+                    ]
+                },
+                {
+                    title: "Additional Information",
+                    entries: [
+                        {
+                            mainTitle: "",
+                            location: "",
+                            subTitle: "",
+                            date: "",
+                            items: [
+                                "<b>Programming Languages:</b> Python (proficient), SQL (proficient), C/C++ (familiar)",
+                                "<b>Tools:</b> LaTeX, Git, Docker",
+                                "<b>Languages:</b> Chinese (Native), English (Fluent)"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+        
+        let resumeData = {};
+
+        // --- 本地存储 & 数据处理函数 ---
+        function saveToLocalStorage() {
+            localStorage.setItem(storageKey, JSON.stringify(resumeData));
+        }
+        
+        function loadFromLocalStorage() {
+            const savedData = localStorage.getItem(storageKey);
+            return savedData ? JSON.parse(savedData) : null;
+        }
+
+        function updateAndRender(newData) {
+            resumeData = newData;
+            saveToLocalStorage();
+            renderResume();
+        }
+
+        
+        // --- 核心渲染函数 ---
+        function renderResume() {
+            resumeContainer.innerHTML = '';
+
+            // 1. 渲染头部信息
+            const header = resumeData.header;
+            const headerHTML = `
+                <div class="header text-center">
+                    <h1 contenteditable="true" data-path="header.name" class="text-3xl font-bold tracking-wider" placeholder="Your Name / 你的名字">${header.name}</h1>
+                    <div class="text-sm mt-1">
+                        <span contenteditable="true" data-path="header.email" placeholder="Email / 邮箱">${header.email}</span>
+                        <span class="mx-2">|</span>
+                        <span contenteditable="true" data-path="header.phone" placeholder="Phone / 电话">${header.phone}</span>
+                        <span class="mx-2">|</span>
+                        <span contenteditable="true" data-path="header.address" placeholder="Location / 地址">${header.address}</span>
+                        <span class="mx-2">|</span>
+                        <span contenteditable="true" data-path="header.link" placeholder="Website/GitHub / 个人网站">${header.link}</span>
+                    </div>
+                </div>
+            `;
+            resumeContainer.insertAdjacentHTML('beforeend', headerHTML);
+
+            // 2. 遍历并渲染所有模块 (sections)
+            resumeData.sections.forEach((section, sectionIndex) => {
+                const sectionWrapper = document.createElement('div');
+                sectionWrapper.className = 'section relative group';
+                
+                sectionWrapper.innerHTML = `
+                    <div class="action-button btn-remove no-print" style="top: 0px; right: -10px;" title="删除模块 / Delete Section" onclick="removeSection(${sectionIndex})">&times;</div>
+                    <h2 contenteditable="true" data-path="sections.${sectionIndex}.title" class="section-title" placeholder="Section Title / 模块标题">${section.title}</h2>
+                `;
+                
+                // 3. 遍历并渲染模块内的所有条目 (entries)
+                section.entries.forEach((entry, entryIndex) => {
+                    const entryWrapper = document.createElement('div');
+                    entryWrapper.className = 'entry relative group';
+
+                    const headingHTML = (entry.mainTitle || entry.location || entry.subTitle || entry.date) ? `
+                        <div class="entry-heading">
+                            <div class="flex justify-between">
+                                <b contenteditable="true" data-path="sections.${sectionIndex}.entries.${entryIndex}.mainTitle" placeholder="Institution / Company">${entry.mainTitle}</b>
+                                <span contenteditable="true" data-path="sections.${sectionIndex}.entries.${entryIndex}.location" placeholder="Location">${entry.location}</span>
+                            </div>
+                            <div class="flex justify-between text-sm italic">
+                                <span contenteditable="true" data-path="sections.${sectionIndex}.entries.${entryIndex}.subTitle" placeholder="Degree / Position">${entry.subTitle}</span>
+                                <span contenteditable="true" data-path="sections.${sectionIndex}.entries.${entryIndex}.date" placeholder="Date Range">${entry.date}</span>
+                            </div>
+                        </div>
+                    ` : '';
+
+                    const itemsHTML = `
+                        <ul class="item-list">
+                            ${entry.items.map((item, itemIndex) => `
+                                <li class="item relative group/item text-sm">
+                                    <span contenteditable="true" data-path="sections.${sectionIndex}.entries.${entryIndex}.items.${itemIndex}" placeholder="Description or achievement">${item}</span>
+                                    <div class="action-button btn-remove no-print group-hover/item:opacity-100" style="top: -2px; right: 0;" title="删除此项 / Delete Item" onclick="removeItem(${sectionIndex}, ${entryIndex}, ${itemIndex})">&times;</div>
+                                </li>
+                            `).join('')}
+                        </ul>`;
+                        
+                    entryWrapper.innerHTML = `
+                        ${headingHTML}
+                        ${itemsHTML}
+                        <div class="action-button btn-add no-print" style="top: 0; right: 28px;" title="添加描述 / Add Item" onclick="addItem(${sectionIndex}, ${entryIndex})">+</div>
+                        <div class="action-button btn-remove no-print" style="top: 0; right: 0;" title="删除此条目 / Delete Entry" onclick="removeEntry(${sectionIndex}, ${entryIndex})">&times;</div>
+                    `;
+                    sectionWrapper.appendChild(entryWrapper);
+                });
+
+                const addEntryButton = `<button class="no-print mt-2 text-blue-600 text-sm hover:text-blue-800 font-semibold" onclick="addEntry(${sectionIndex})">+ 添加条目 / Add Entry</button>`;
+                sectionWrapper.insertAdjacentHTML('beforeend', addEntryButton);
+                
+                resumeContainer.appendChild(sectionWrapper);
+            });
+        }
+
+        // --- 数据更新函数 ---
+        document.addEventListener('input', (e) => {
+            if (e.target.hasAttribute('contenteditable')) {
+                const path = e.target.dataset.path;
+                if(path) {
+                    updateDataByPath(path, e.target.innerHTML);
+                    saveToLocalStorage(); // 每次编辑都保存
+                }
+            }
+        });
+
+        function updateDataByPath(path, value) {
+            const keys = path.split(/[\.\[\]]/).filter(Boolean);
+            let current = resumeData;
+            for (let i = 0; i < keys.length - 1; i++) {
+                current = current[keys[i]];
+            }
+            current[keys[keys.length - 1]] = value;
+        }
+
+        // --- 交互功能函数 ---
+        window.addSection = function() {
+            const title = prompt("输入新模块的标题 / Enter the title for the new section:", "New Section");
+            if (title) {
+                resumeData.sections.push({
+                    title: title,
+                    entries: [{ mainTitle: "New Entry Title", location: "Location", subTitle: "Subtitle or Role", date: "Date", items: ["New item description."] }]
+                });
+                updateAndRender(resumeData);
+            }
+        }
+        
+        window.removeSection = function(sectionIndex) {
+            if (confirm('确认删除整个模块吗？\nAre you sure you want to delete this entire section?')) {
+                resumeData.sections.splice(sectionIndex, 1);
+                updateAndRender(resumeData);
+            }
+        }
+
+        window.addEntry = function(sectionIndex) {
+            resumeData.sections[sectionIndex].entries.push({ mainTitle: "New Entry Title", location: "Location", subTitle: "Subtitle or Role", date: "Date", items: ["New item description."] });
+            updateAndRender(resumeData);
+        }
+
+        window.removeEntry = function(sectionIndex, entryIndex) {
+            if (confirm('确认删除这个条目吗？\nAre you sure you want to delete this entry?')) {
+                resumeData.sections[sectionIndex].entries.splice(entryIndex, 1);
+                updateAndRender(resumeData);
+            }
+        }
+        
+        window.addItem = function(sectionIndex, entryIndex) {
+            resumeData.sections[sectionIndex].entries[entryIndex].items.push("New item description.");
+            updateAndRender(resumeData);
+        }
+
+        window.removeItem = function(sectionIndex, entryIndex, itemIndex) {
+            const items = resumeData.sections[sectionIndex].entries[entryIndex].items;
+            if (items.length > 1) {
+                items.splice(itemIndex, 1);
+                updateAndRender(resumeData);
+            } else {
+                alert("这是最后一项描述。如需删除，请直接删除整个条目。\nThis is the last item. To remove it, please delete the entire entry.");
+            }
+        }
+        
+        // --- 导入/导出 JSON ---
+        function exportJSON() {
+            const jsonString = JSON.stringify(resumeData, null, 2);
+            const blob = new Blob([jsonString], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'resume-data.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function importJSON() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = e => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = readerEvent => {
+                    try {
+                        const content = readerEvent.target.result;
+                        const importedData = JSON.parse(content);
+                        // 简单的验证
+                        if (importedData.header && importedData.sections) {
+                            updateAndRender(importedData);
+                            alert('导入成功！/ Import successful!');
+                        } else {
+                            alert('文件格式无效。/ Invalid file format.');
+                        }
+                    } catch (err) {
+                        alert('解析文件失败，请确保是有效的JSON文件。\nFailed to parse file, please ensure it is a valid JSON.');
+                    }
+                }
+                reader.readAsText(file, 'UTF-8');
+            }
+            input.click();
+        }
+
+        // --- 初始化 ---
+        function init() {
+            const loadedData = loadFromLocalStorage();
+            resumeData = loadedData ? loadedData : JSON.parse(JSON.stringify(defaultData)); // 使用深拷贝
+            renderResume();
+
+            document.getElementById('add-section-button').addEventListener('click', window.addSection);
+            document.getElementById('print-button').addEventListener('click', () => window.print());
+            document.getElementById('export-button').addEventListener('click', exportJSON);
+            document.getElementById('import-button').addEventListener('click', importJSON);
+        }
+
+        init();
+    });
+    </script>
+
+</body>
+</html>
