@@ -33,8 +33,8 @@
 3. 开始制作你的简历。
 
 
-![image]("./assets/profes.png")
-![image]("./assets/academic.png")
+![image](./assets/profes.png)
+![image](./assets/academic.png)
 ## **📄 LaTeX 模板 (Original LaTeX Template)**
 
 本模板在 [sb2nov/resume](https://github.com/sb2nov/resume) 基础上进行改进，主要变化有：
@@ -68,4 +68,4 @@
 
 4. 不需要的注释可以尽情删除。
 
-![image]("./assets/resume.png")
+![image](./assets/resume.png)
