@@ -3,471 +3,421 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>交互式简历生成器 - Interactive Resume Builder</title>
+    <title>One Resume is All - 交互式简历生成器</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
     <style>
-        /*
-         * 主体样式，模拟纸张效果和字体
-         */
+        /* General Base Styles */
         body {
-            background-color: #f7f7f7; /* 更柔和的背景色 */
-            font-family: 'PT Serif', 'Times New Roman', serif;
+            background-color: #f3f4f6;
+            font-family: 'PT Serif', 'Times New Roman', 'Noto Serif SC', serif;
+            color: #1f2937;
         }
 
-        /* 简历容器样式，模拟A4纸张 */
-        #resume-paper {
-            width: 21cm;
-            min-height: 29.7cm;
-            padding: 1cm 1.5cm;
-            margin: 2rem auto;
-            background: white;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08); /* 更精致的阴影 */
-            color: #1a1a1a;
-            line-height: 1.25;
-        }
-
-        /*
-         * contenteditable元素的占位符效果
-         */
-        [contenteditable="true"]:empty:before {
-            content: attr(placeholder);
-            color: #a0aec0; /* 柔和的占位符颜色 */
-            cursor: text;
-        }
-
-        /*
-         * LaTeX 间距精确还原
-         */
-        .header { margin-bottom: -10pt; }
-        .section { margin-top: 10pt; }
+        .no-print { display: block; }
         
-        .section-title {
-            font-size: 1.2em;
-            font-variant: small-caps;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            margin-bottom: -4pt;
-        }
-
-        .section-title::after {
-            content: '';
-            display: block;
-            width: 100%;
-            border-bottom: 0.75pt solid black;
-            margin-top: 2pt;
-            margin-bottom: 8pt;
-        }
-
-        .entry { margin-bottom: 8pt; }
-        .entry-heading { margin-bottom: 1pt; }
-
-        .item-list {
-            margin-top: -5pt;
-            margin-bottom: -5pt;
-            list-style-type: disc;
-            list-style-position: outside;
-            padding-left: 1.2rem;
-        }
-        
-        .item {
-            margin-top: -3pt;
-            padding-bottom: 2pt;
-        }
-        
-        /*
-         * 交互按钮样式 (UI 优化)
-         */
-        .action-button {
-            position: absolute;
-            background-color: #4299e1; /* 蓝色基调 */
-            color: white;
-            border-radius: 9999px;
-            width: 24px;
-            height: 24px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            opacity: 0;
-            transition: all 0.2s ease-in-out;
-            border: 2px solid white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            user-select: none;
-            transform: scale(0.8);
-        }
-
-        .group:hover .action-button {
-            opacity: 1;
-            transform: scale(1);
-        }
-        
-        .action-button:hover {
-            transform: scale(1.15);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.25);
-        }
-        
-        .btn-add { font-size: 18px; } /* “+” 按钮 */
-        .btn-remove { background-color: #f56565; font-size: 20px; line-height: 1; } /* “×” 按钮 */
-        .btn-remove:hover { background-color: #e53e3e; }
-
-
-        /*
-         * 打印样式
-         */
+        /* Print Styles */
         @media print {
             .no-print { display: none !important; }
-            body { background-color: white; margin: 0; }
-            #resume-paper {
-                margin: 0;
-                padding: 1cm 1.5cm;
-                width: auto;
-                min-height: auto;
-                box-shadow: none;
-                border: none;
-            }
+            body { background-color: white; margin: 0; --tw-shadow: 0 0 #0000 !important; }
+            #resume-container { margin: 0; padding: 0; width: auto; min-height: auto; box-shadow: none; border: none; }
+            .page { box-shadow: none !important; margin: 0 !important; border: none !important; break-inside: avoid; }
+            @page { size: A4; margin: 0; }
+            html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
+
+        /* Interactive Button Styles */
+        .action-button {
+            position: absolute; background-color: #3b82f6; color: white; border-radius: 9999px;
+            width: 20px; height: 20px; font-weight: bold; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; opacity: 0; transition: all 0.2s ease-in-out; border: 2px solid white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2); user-select: none; transform: scale(0.8); z-index: 10;
+        }
+        .group:hover .action-button { opacity: 1; transform: scale(1); }
+        .action-button:hover { transform: scale(1.1); box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+        .btn-add { font-size: 14px; }
+        .btn-remove { background-color: #ef4444; font-size: 16px; line-height: 1; }
+        .btn-remove:hover { background-color: #dc2626; }
+        
+        /* --- Academic Template (LaTeX Style) --- */
+        .resume-academic { width: 21cm; min-height: 29.7cm; padding: 1cm 1.5cm; margin: 2rem auto; background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .resume-academic .section { margin-top: 10pt; }
+        .resume-academic .section-title { font-size: 1.2em; font-variant: small-caps; font-weight: 600; letter-spacing: 0.05em; margin-bottom: -4pt; }
+        .resume-academic .section-title::after { content: ''; display: block; width: 100%; border-bottom: 0.75pt solid black; margin-top: 2pt; margin-bottom: 8pt; }
+        .resume-academic .entry { margin-bottom: 8pt; }
+        .resume-academic .entry-heading { display: flex; justify-content: space-between; align-items: center; }
+        .resume-academic .entry-title { font-weight: bold; }
+        .resume-academic .entry-subtitle, .resume-academic .entry-location, .resume-academic .entry-date { font-style: italic; font-size: 0.9em; }
+        .resume-academic .item-list { list-style-type: disc; list-style-position: outside; padding-left: 1.5rem; margin-top: 2pt; }
+        .resume-academic .item { padding-bottom: 2pt; }
+
+        /* --- Professional Template (Two-Column Style) --- */
+        .resume-professional { display: flex; width: 21cm; min-height: 29.7cm; margin: 2rem auto; background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .resume-professional .left-column { width: 30%; background-color: #f8fafc; padding: 1.8cm 1cm; border-right: 1px solid #e5e7eb; }
+        .resume-professional .right-column { width: 70%; padding: 1.5cm 1.5cm; }
+        .resume-professional #photo-container { width: 120px; height: 150px; margin: 0 auto 1.5rem; background-color: #e2e8f0; border-radius: 8px; cursor: pointer; background-size: cover; background-position: center; position: relative; overflow: hidden; }
+        .resume-professional #photo-container:hover::after { content: attr(data-hover-text); position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .resume-professional .section { margin-bottom: 1.2rem; }
+        .resume-professional .section-title { font-size: 1.3em; font-weight: 700; color: #1e3a8a; padding-bottom: 0.3rem; border-bottom: 2px solid #93c5fd; margin-bottom: 0.8rem; }
+        .resume-professional .entry { margin-bottom: 1rem; }
+        .resume-professional .item-list { list-style-position: outside; padding-left: 1rem; }
+        .resume-professional .item::before { content: '•'; color: #3b82f6; font-weight: bold; display: inline-block; width: 1em; margin-left: -1em; }
+        
+        /* Utility Styles */
+        [contenteditable="true"]:empty:before { content: attr(placeholder); color: #a0aec0; cursor: text; }
+        .slider-container { display: flex; align-items: center; gap: 0.5rem; }
+        input[type="range"] { -webkit-appearance: none; appearance: none; width: 100px; height: 8px; background: #d1d5db; border-radius: 5px; outline: none; opacity: 0.7; transition: opacity .2s; }
+        input[type="range"]:hover { opacity: 1; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; background: #3b82f6; cursor: pointer; border-radius: 50%; }
+        input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; background: #3b82f6; cursor: pointer; border-radius: 50%; }
     </style>
 </head>
-<body class="text-[10.5pt]">
+<body>
 
     <header class="no-print bg-white shadow-md p-4 sticky top-0 z-50 flex justify-between items-center">
         <div>
-            <h1 class="text-xl font-bold">交互式简历生成器 / Interactive Resume Builder</h1>
-            <p class="text-sm text-gray-500 mt-1">专为学术和极简风格设计 / Designed for Academic & Minimalist Styles</p>
+            <h1 class="text-2xl font-bold">One Resume is All.</h1>
+            <p id="app-subtitle" class="text-xs text-gray-500 mt-1">复杂的世界里，一份简历就够了</p>
+            <div class="flex items-center space-x-4 mt-2">
+                <a href="https://www.linkedin.com/in/hugh-qiu-a15686273" target="_blank" title="LinkedIn" class="text-gray-500 hover:text-blue-700">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                </a>
+                <a href="https://hughyau.com/" target="_blank" title="个人主页" class="text-gray-500 hover:text-gray-900">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9V3m0 18a9 9 0 009-9M3 12a9 9 0 019-9m-9 9h18" /></svg>
+                </a>
+            </div>
         </div>
         <div class="flex items-center space-x-4">
-            <div class="text-right">
-                <button id="import-button" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition-all duration-200">导入JSON<br>Load JSON</button>
-                <button id="export-button" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition-all duration-200">导出JSON<br>Export JSON</button>
+            <div class="flex rounded-md shadow-sm">
+                <button id="template-professional-btn" data-i18n="profTpl" class="px-3 py-2 border border-gray-300 font-semibold text-sm rounded-l-md">专业模板</button>
+                <button id="template-academic-btn" data-i18n="acadTpl" class="px-3 py-2 border border-gray-300 font-semibold text-sm rounded-r-md -ml-px">学术模板</button>
             </div>
-            <div class="text-right border-l pl-4">
-                <button id="print-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-lg">
-                    打印为PDF(Save)
-                </button>
-                <p class="text-xs text-gray-500 mt-2 max-w-xs">
-                    <b>打印提示:</b> 请在系统打印对话框的“更多设置”中取消勾选“页眉和页脚”以获得最佳效果。
-                    <br>
-                    <b>Print Tip:</b> In "More settings", uncheck "Headers and footers".
-                </p>
+            <div class="slider-container">
+                <span id="font-size-label" class="text-sm font-semibold" data-i18n="fontSize">字号:</span>
+                <input type="range" id="font-size-slider" min="9" max="13" step="0.1" value="10.5">
+            </div>
+            <div class="slider-container">
+                <span id="line-height-label" class="text-sm font-semibold" data-i18n="lineHeight">行距:</span>
+                <input type="range" id="line-height-slider" min="1.2" max="1.8" step="0.01" value="1.4">
+            </div>
+            <div class="flex items-center space-x-2">
+                <button id="lang-toggle-btn" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-3 text-sm rounded-lg"></button>
+                <button id="reset-button" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-3 text-sm rounded-lg" data-i18n="reset">重置</button>
+                <button id="print-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-3 text-sm rounded-lg" data-i18n="print">打印</button>
+                <div id="print-instructions" class="relative group">
+                   <svg class="w-5 h-5 text-blue-500 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                   <div class="absolute right-0 top-full mt-2 w-64 bg-gray-800 text-white text-xs rounded py-2 px-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                       <b id="print-tooltip-title">打印提示:</b> 在打印对话框的“更多设置”中, 请务必:
+                       <ul class="list-disc list-inside mt-1">
+                           <li id="print-tooltip-line1">取消勾选 "页眉和页脚"</li>
+                           <li id="print-tooltip-line2">勾选 "背景图形"</li>
+                       </ul>
+                   </div>
+                </div>
             </div>
         </div>
     </header>
 
-    <main id="resume-paper">
-        <!-- 简历内容将由JavaScript动态生成并插入到这里 -->
-    </main>
+    <main id="resume-container" class="py-8"></main>
     
     <div class="no-print flex justify-center my-8">
-        <button id="add-section-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-            + 添加新模块 / Add New Section
-        </button>
+        <button id="add-section-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full shadow-lg" data-i18n="addSection">+ 添加新模块</button>
     </div>
 
+    <input type="file" id="photo-upload" class="hidden" accept="image/*">
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        
-        const resumeContainer = document.getElementById('resume-paper');
-        const storageKey = 'interactiveResumeData';
-        
-        // --- 数据模型 ---
-        const defaultData = {
-            header: {
-                name: "Hugh Qiu",
-                email: "xxx@ruc.edu.cn",
-                phone: "+86-1xxxxxxxxxx",
-                address: "Beijing, China",
-                link: "github.com/HughYau"
+        const resumeContainer = document.getElementById('resume-container');
+        const storageKeyPrefix = 'interactiveResume_v6_';
+        let currentTemplate = 'academic';
+        let currentLang = 'zh';
+
+        const translations = {
+            zh: {
+                // UI
+                subtitle: "复杂的世界里，一份简历就够了", profTpl: "专业模板", acadTpl: "学术模板", fontSize: "字号:", lineHeight: "行距:", toggleEN: "English", reset: "重置", print: "打印", addSection: "+ 添加新模块", uploadPhoto: "点击上传照片", newListItem: "新描述", resetConfirm: "确定要重置简历吗？", deleteConfirm: "确定要删除吗？", addSectionPrompt: "输入新模块标题:", newSection: "新模块", newEntry: "新条目",
+                print: "打印",
+                printInfoTitle: "打印提示:",
+                printInfoLine1: "取消勾选 \"页眉和页脚\"",
+                printInfoLine2: "勾选 \"背景图形\"",
+                // Professional Template Content
+                profName: "张三", profJobTitle: "数据分析师", profPhone: "138-0013-8000", profEmail: "zhangsan@example.com", profLocation: "中国, 上海", profLink: "github.com/zhangsan",
+                profSummaryTitle: "个人总结", profSummaryContent: "拥有超过5年数据分析经验，对业务增长有深刻洞察力。擅长从海量数据中挖掘商业价值，通过数据驱动产品优化和运营决策。具备优秀的跨团队沟通和项目管理能力。",
+                profSkillsTitle: "专业技能", profSkills: ["Python (Pandas, Scikit-learn)", "SQL (Hive, Spark SQL)", "数据可视化 (Tableau, Power BI)", "A/B 测试平台", "机器学习 (TensorFlow, PyTorch)"],
+                profWorkTitle: "工作经历", profWork1Company: "ABC科技有限公司", profWork1Pos: "高级数据分析师", profWork1Date: "2021 - 至今", profWork1Loc: "上海", profWork1Desc: [ "主导用户增长项目，通过构建用户画像和行为序列模型，将新用户转化率提升了30%。", "搭建自动化报表系统，监控核心业务指标，将数据分析效率提升50%。", "与产品团队紧密合作，设计并评估了超过20个大型A/B测试。" ],
+                profProjectTitle: "个人项目", profProject1Name: "客户流失预警模型", profProject1Desc: ["使用逻辑回归和XGBoost算法，基于用户历史行为数据预测流失风险，模型准确率达到92%。", "为运营团队提供了高风险用户名单，配合精准干预策略，成功将季度流失率降低了5%。"],
+                profEduTitle: "教育背景", profEduSchool: "震旦大学", profEduMajor: "统计学硕士", profEduDate: "2018 - 2021", profEduLoc: "上海", profEduDesc: ["GPA: 3.9/4.0，获得国家奖学金。"],
+                // Academic Template Content
+                acadName: "李四", acadContact: "邮箱: lisi@university.edu.cn | 电话: 138-0013-8000",
+                acadEduTitle: "教育背景", acadEduSchool: "京北大学", acadEduLoc: "北京", acadEduMajor: "B.S. 计算机科学", acadEduDate: "2018 - 2022", acadEduItems: ["GPA: 3.9/4.0", "荣誉: 国家奖学金", "相关课程: 算法, 数据结构"],
+                acadResTitle: "研究经历", acadRes1Proj: "大语言模型的可解释性研究", acadRes1Advisor: "导师: 王教授", acadRes1Date: "2021 - 2022", acadRes1Items: ["提出一种新的注意力机制可视化方法。", "相关成果发表于ACL 2023。"],
+                acadPubsTitle: "发表论文", acadPubs: ["Li, S., et al. (2023). 'A Novel Method for Interpreting Large Language Models.' *ACL 2023*."],
+                acadAddTitle: "其他信息", acadSkills: "编程: Python, C++, SQL", acadTA: "助教: 算法 (2021秋)"
             },
-            sections: [
-                {
-                    title: "Education",
-                    entries: [
-                        {
-                            mainTitle: "Renmin University of China (RUC)",
-                            location: "Beijing",
-                            subTitle: "B.S. in Mathematics and Applied Mathematics & B.A. in Public Finance",
-                            date: "Sep 2018 - Jun 2022",
-                            items: [
-                                "<b>GPA:</b> XX (<b>Rank:</b> XXX)",
-                                "<b>Honors & Awards:</b> National Scholarship, Merit Student, etc.",
-                                "<b>Relevant Courses:</b> Mathematical Analysis, Advanced Algebra, Probability and Statistics, etc."
-                            ]
-                        }
+            en: {
+                // UI
+                subtitle: "One resume is all you need.", profTpl: "Professional", acadTpl: "Academic", fontSize: "Font Size:", lineHeight: "Line Spacing:", toggleZH: "中文", reset: "Reset", print: "Print", addSection: "+ Add New Section", uploadPhoto: "Click to upload photo", newListItem: "New description", resetConfirm: "Are you sure you want to reset?", deleteConfirm: "Are you sure to delete?", addSectionPrompt: "Enter new section title:", newSection: "New Section", newEntry: "New Entry",
+                print: "Print",
+                printInfoTitle: "Print Tips:",
+                printInfoLine1: "Uncheck \"Headers and footers\"",
+                printInfoLine2: "Check \"Background graphics\"",
+                // Professional Template Content
+                profName: "Mike Anderson", profJobTitle: "Data Analyst", profPhone: "+1-123-456-7890", profEmail: "mike.a@example.com", profLocation: "San Francisco, CA", profLink: "github.com/mike-a",
+                profSummaryTitle: "Profile", profSummaryContent: "Data Analyst with 5+ years of experience and a deep understanding of business growth. Adept at extracting business value from massive datasets to drive product optimization and operational decisions.",
+                profSkillsTitle: "Skills", profSkills: ["Python (Pandas, Scikit-learn)", "SQL (Hive, Spark SQL)", "Data Visualization (Tableau, Power BI)", "A/B Testing Platforms", "Machine Learning (TensorFlow)"],
+                profWorkTitle: "Experience", profWork1Company: "ABC Tech Inc.", profWork1Pos: "Senior Data Analyst", profWork1Date: "2021 - Present", profWork1Loc: "San Francisco, CA", profWork1Desc: [ "Led user growth projects, increasing new user conversion rate by 30% through user profiling and behavioral sequence modeling.", "Built an automated reporting system to monitor core business metrics, improving data analysis efficiency by 50%." ],
+                profProjectTitle: "Projects", profProject1Name: "Customer Churn Prediction Model", profProject1Desc: ["Used Logistic Regression and XGBoost to predict churn risk based on user behavior data, achieving a model accuracy of 92%.", "Provided the operations team with a list of high-risk users, which, combined with targeted intervention strategies, reduced quarterly churn by 5%."],
+                profEduTitle: "Education", profEduSchool: "Stanford University", profEduMajor: "M.S. in Statistics", profEduDate: "2018 - 2021", profEduLoc: "Stanford, CA", profEduDesc: ["GPA: 3.9/4.0, recipient of the University Fellowship."],
+                // Academic Template Content
+                acadName: "John Smith", acadContact: "Email: john.s@university.edu | Phone: +1-555-555-5555",
+                acadEduTitle: "Education", acadEduSchool: "Columbia University", acadEduLoc: "New York, NY", acadEduMajor: "B.S. in Computer Science", acadEduDate: "2018 - 2022", acadEduItems: ["GPA: 3.9/4.0", "Honors: Dean's List", "Courses: Algorithms, Data Structures"],
+                acadResTitle: "Research Experience", acadRes1Proj: "Interpretability of Large Language Models", acadRes1Advisor: "Advisor: Prof. Wang", acadRes1Date: "2021 - 2022", acadRes1Items: ["Proposed a novel visualization method for attention mechanisms.", "Relevant work published in ACL 2023."],
+                acadPubsTitle: "Publications", acadPubs: ["Smith, J., et al. (2023). 'A Novel Method for Interpreting Large Language Models.' *ACL 2023*."],
+                acadAddTitle: "Additional Information", acadSkills: "Programming: Python, C++, SQL", acadTA: "TA: Algorithms (Fall 2021)"
+            }
+        };
+
+        const getDefaultData = (template, lang) => {
+            const t = translations[lang];
+            if (template === 'academic') {
+                return {
+                    settings: { fontSize: 10.5, lineHeight: 1.4 },
+                    header: { name: t.acadName, contact: t.acadContact },
+                    sections: [
+                        { title: t.acadEduTitle, entries: [{ title: t.acadEduSchool, location: t.acadEduLoc, subtitle: t.acadEduMajor, date: t.acadEduDate, items: t.acadEduItems }] },
+                        { title: t.acadResTitle, entries: [{ title: t.acadRes1Proj, subtitle: t.acadRes1Advisor, date: t.acadRes1Date, items: t.acadRes1Items }] },
+                        { title: t.acadPubsTitle, entries: [{ items: t.acadPubs }] },
+                        { title: t.acadAddTitle, entries: [{ items: [t.acadSkills, t.acadTA] }] }
                     ]
-                },
-                {
-                    title: "Professional Experience",
-                    entries: [
-                        {
-                            mainTitle: "Company Name",
-                            location: "Beijing",
-                            subTitle: "Your Role (e.g., Software Engineer Intern)",
-                            date: "Sep 2022 - Present",
-                            items: [
-                                "Describe your first responsibility or achievement here. Be specific and use action verbs.",
-                                "Describe your second responsibility. Quantify your impact whenever possible.",
-                                "This project resulted in a 20% increase in user engagement."
-                            ]
-                        }
-                    ]
-                },
-                {
-                    title: "Research Experience",
-                    entries: [
-                        {
-                            mainTitle: "Name of Your Research Project",
-                            location: "",
-                            subTitle: "Author [Supervised by Prof. XXXX]",
-                            date: "Mar 2021 - Jun 2022",
-                            items: [
-                                "Researched on the topic of X, employing methods Y and Z.",
-                                "Developed a novel algorithm that improved performance by X%.",
-                                "Published findings in [Conference/Journal Name] or prepared a manuscript for submission."
-                            ]
-                        }
-                    ]
-                },
-                {
-                    title: "Additional Information",
-                    entries: [
-                        {
-                            mainTitle: "",
-                            location: "",
-                            subTitle: "",
-                            date: "",
-                            items: [
-                                "<b>Programming Languages:</b> Python (proficient), SQL (proficient), C/C++ (familiar)",
-                                "<b>Tools:</b> LaTeX, Git, Docker",
-                                "<b>Languages:</b> Chinese (Native), English (Fluent)"
-                            ]
-                        }
+                };
+            }
+            // Professional
+            return {
+                settings: { fontSize: 10, lineHeight: 1.5 }, photoUrl: '',
+                header: { name: t.profName, jobTitle: t.profJobTitle },
+                contact: [ { icon: '📱', value: t.profPhone }, { icon: '✉️', value: t.profEmail }, { icon: '📍', value: t.profLocation }, { icon: '🔗', value: t.profLink } ],
+                sections: {
+                    left: [ { title: t.profSummaryTitle, isList: false, content: t.profSummaryContent }, { title: t.profSkillsTitle, isList: true, items: t.profSkills } ],
+                    right: [
+                        { title: t.profWorkTitle, entries: [{ mainTitle: t.profWork1Company, subTitle: t.profWork1Pos, date: t.profWork1Date, location: t.profWork1Loc, items: t.profWork1Desc }] },
+                        { title: t.profProjectTitle, entries: [{ mainTitle: t.profProject1Name, items: t.profProject1Desc }] },
+                        { title: t.profEduTitle, entries: [{ mainTitle: t.profEduSchool, subTitle: t.profEduMajor, date: t.profEduDate, location: t.profEduLoc, items: t.profEduDesc }] }
                     ]
                 }
-            ]
+            };
         };
-        
+
         let resumeData = {};
-
-        // --- 本地存储 & 数据处理函数 ---
-        function saveToLocalStorage() {
-            localStorage.setItem(storageKey, JSON.stringify(resumeData));
-        }
         
-        function loadFromLocalStorage() {
-            const savedData = localStorage.getItem(storageKey);
-            return savedData ? JSON.parse(savedData) : null;
-        }
-
-        function updateAndRender(newData) {
-            resumeData = newData;
-            saveToLocalStorage();
-            renderResume();
-        }
-
+        function getStorageKey() { return `${storageKeyPrefix}${currentTemplate}_${currentLang}`; }
+        function saveToLocalStorage() { localStorage.setItem(getStorageKey(), JSON.stringify(resumeData)); }
+        function loadFromLocalStorage() { const data = localStorage.getItem(getStorageKey()); return data ? JSON.parse(data) : null; }
+        function updateAndRender(newData, shouldSave = true) { resumeData = newData; if (shouldSave) saveToLocalStorage(); renderResume(); }
         
-        // --- 核心渲染函数 ---
         function renderResume() {
             resumeContainer.innerHTML = '';
-
-            // 1. 渲染头部信息
-            const header = resumeData.header;
-            const headerHTML = `
-                <div class="header text-center">
-                    <h1 contenteditable="true" data-path="header.name" class="text-3xl font-bold tracking-wider" placeholder="Your Name / 你的名字">${header.name}</h1>
-                    <div class="text-sm mt-1">
-                        <span contenteditable="true" data-path="header.email" placeholder="Email / 邮箱">${header.email}</span>
-                        <span class="mx-2">|</span>
-                        <span contenteditable="true" data-path="header.phone" placeholder="Phone / 电话">${header.phone}</span>
-                        <span class="mx-2">|</span>
-                        <span contenteditable="true" data-path="header.address" placeholder="Location / 地址">${header.address}</span>
-                        <span class="mx-2">|</span>
-                        <span contenteditable="true" data-path="header.link" placeholder="Website/GitHub / 个人网站">${header.link}</span>
-                    </div>
-                </div>
-            `;
-            resumeContainer.insertAdjacentHTML('beforeend', headerHTML);
-
-            // 2. 遍历并渲染所有模块 (sections)
-            resumeData.sections.forEach((section, sectionIndex) => {
-                const sectionWrapper = document.createElement('div');
-                sectionWrapper.className = 'section relative group';
-                
-                sectionWrapper.innerHTML = `
-                    <div class="action-button btn-remove no-print" style="top: 0px; right: -10px;" title="删除模块 / Delete Section" onclick="removeSection(${sectionIndex})">&times;</div>
-                    <h2 contenteditable="true" data-path="sections.${sectionIndex}.title" class="section-title" placeholder="Section Title / 模块标题">${section.title}</h2>
-                `;
-                
-                // 3. 遍历并渲染模块内的所有条目 (entries)
-                section.entries.forEach((entry, entryIndex) => {
-                    const entryWrapper = document.createElement('div');
-                    entryWrapper.className = 'entry relative group';
-
-                    const headingHTML = (entry.mainTitle || entry.location || entry.subTitle || entry.date) ? `
-                        <div class="entry-heading">
-                            <div class="flex justify-between">
-                                <b contenteditable="true" data-path="sections.${sectionIndex}.entries.${entryIndex}.mainTitle" placeholder="Institution / Company">${entry.mainTitle}</b>
-                                <span contenteditable="true" data-path="sections.${sectionIndex}.entries.${entryIndex}.location" placeholder="Location">${entry.location}</span>
-                            </div>
-                            <div class="flex justify-between text-sm italic">
-                                <span contenteditable="true" data-path="sections.${sectionIndex}.entries.${entryIndex}.subTitle" placeholder="Degree / Position">${entry.subTitle}</span>
-                                <span contenteditable="true" data-path="sections.${sectionIndex}.entries.${entryIndex}.date" placeholder="Date Range">${entry.date}</span>
-                            </div>
-                        </div>
-                    ` : '';
-
-                    const itemsHTML = `
-                        <ul class="item-list">
-                            ${entry.items.map((item, itemIndex) => `
-                                <li class="item relative group/item text-sm">
-                                    <span contenteditable="true" data-path="sections.${sectionIndex}.entries.${entryIndex}.items.${itemIndex}" placeholder="Description or achievement">${item}</span>
-                                    <div class="action-button btn-remove no-print group-hover/item:opacity-100" style="top: -2px; right: 0;" title="删除此项 / Delete Item" onclick="removeItem(${sectionIndex}, ${entryIndex}, ${itemIndex})">&times;</div>
-                                </li>
-                            `).join('')}
-                        </ul>`;
-                        
-                    entryWrapper.innerHTML = `
-                        ${headingHTML}
-                        ${itemsHTML}
-                        <div class="action-button btn-add no-print" style="top: 0; right: 28px;" title="添加描述 / Add Item" onclick="addItem(${sectionIndex}, ${entryIndex})">+</div>
-                        <div class="action-button btn-remove no-print" style="top: 0; right: 0;" title="删除此条目 / Delete Entry" onclick="removeEntry(${sectionIndex}, ${entryIndex})">&times;</div>
-                    `;
-                    sectionWrapper.appendChild(entryWrapper);
-                });
-
-                const addEntryButton = `<button class="no-print mt-2 text-blue-600 text-sm hover:text-blue-800 font-semibold" onclick="addEntry(${sectionIndex})">+ 添加条目 / Add Entry</button>`;
-                sectionWrapper.insertAdjacentHTML('beforeend', addEntryButton);
-                
-                resumeContainer.appendChild(sectionWrapper);
-            });
+            let page;
+            if (currentTemplate === 'academic') {
+                page = renderAcademicTemplate();
+            } else {
+                page = renderProfessionalTemplate();
+            }
+            if (page) {
+                resumeContainer.appendChild(page);
+                applySettings(page);
+                attachEventListeners();
+                updateControlState();
+            }
         }
 
-        // --- 数据更新函数 ---
-        document.addEventListener('input', (e) => {
-            if (e.target.hasAttribute('contenteditable')) {
-                const path = e.target.dataset.path;
-                if(path) {
-                    updateDataByPath(path, e.target.innerHTML);
-                    saveToLocalStorage(); // 每次编辑都保存
-                }
-            }
-        });
+        function applySettings(page) {
+            const { fontSize, lineHeight } = resumeData.settings;
+            page.style.fontSize = `${fontSize}pt`;
+            page.style.lineHeight = lineHeight;
+        }
 
+        // --- Academic Template Renderer ---
+        function renderAcademicTemplate() {
+            const page = document.createElement('div');
+            page.className = 'resume-academic page';
+            page.innerHTML = `<div class="text-center mb-4">
+                <h1 contenteditable="true" data-path="header.name" class="text-3xl font-bold tracking-wider">${resumeData.header.name}</h1>
+                <div contenteditable="true" data-path="header.contact" class="text-sm mt-1">${resumeData.header.contact}</div>
+            </div>`;
+            (resumeData.sections || []).forEach((section, sIdx) => {
+                const sectionEl = document.createElement('div');
+                sectionEl.className = 'section relative group';
+                sectionEl.innerHTML = `<div class="action-button btn-remove" style="top:0;right:-10px;" onclick="removeSection(${sIdx})">&times;</div><h2 contenteditable="true" data-path="sections.${sIdx}.title" class="section-title">${section.title}</h2>`;
+                (section.entries || []).forEach((entry, eIdx) => {
+                    const entryEl = document.createElement('div');
+                    entryEl.className = 'entry relative group/entry';
+                    const headingHTML = (entry.title || entry.subtitle) ? `<div class="entry-heading"><span contenteditable="true" data-path="sections.${sIdx}.entries.${eIdx}.title" class="entry-title">${entry.title || ''}</span><span contenteditable="true" data-path="sections.${sIdx}.entries.${eIdx}.location" class="entry-location">${entry.location || ''}</span></div><div class="entry-heading"><span contenteditable="true" data-path="sections.${sIdx}.entries.${eIdx}.subtitle" class="entry-subtitle">${entry.subtitle || ''}</span><span contenteditable="true" data-path="sections.${sIdx}.entries.${eIdx}.date" class="entry-date">${entry.date || ''}</span></div>` : '';
+                    const itemsHTML = `<ul class="item-list">${(entry.items || []).map((item, iIdx) => `<li class="item relative group/item"><div class="action-button btn-remove group-hover/item:opacity-100" style="top:-2px;right:0;" onclick="removeItem(${sIdx}, ${eIdx}, ${iIdx})">&times;</div><span contenteditable="true" data-path="sections.${sIdx}.entries.${eIdx}.items.${iIdx}">${item}</span></li>`).join('')}</ul>`;
+                    entryEl.innerHTML = `<div class="action-button btn-remove" style="top:0;right:0;" onclick="removeEntry(${sIdx}, ${eIdx})">&times;</div><div class="action-button btn-add" style="top:0;right:25px;" onclick="addItem(${sIdx}, ${eIdx})">+</div>${headingHTML}${itemsHTML}`;
+                    sectionEl.appendChild(entryEl);
+                });
+                sectionEl.innerHTML += `<button class="no-print mt-2 text-blue-600 text-sm font-semibold" onclick="addEntry(${sIdx})">+ ${translations[currentLang].newEntry}</button>`;
+                page.appendChild(sectionEl);
+            });
+            return page;
+        }
+
+        // --- Professional Template Renderer ---
+        function renderProfessionalTemplate() {
+            const t = translations[currentLang];
+            const page = document.createElement('div');
+            page.className = 'resume-professional page';
+            page.innerHTML = `<div class="left-column">
+                <div id="photo-container" style="background-image: url('${resumeData.photoUrl || ''}')" data-hover-text="${t.uploadPhoto}"></div>
+                <div class="text-center mb-8">
+                    <h1 contenteditable="true" data-path="header.name" class="text-3xl font-bold">${resumeData.header.name}</h1>
+                    <h2 contenteditable="true" data-path="header.jobTitle" class="text-lg text-blue-700 font-semibold">${resumeData.header.jobTitle}</h2>
+                </div>
+                <div class="mb-8 relative group">
+                    ${(resumeData.contact || []).map((item, index) => `<div class="flex items-center mb-2 text-sm relative group"><div class="action-button btn-remove" style="top:-2px;right:-5px;" onclick="removeProfessionalContact(${index})">&times;</div><span class="mr-2">${item.icon}</span><span contenteditable="true" data-path="contact.${index}.value" class="flex-grow">${item.value}</span></div>`).join('')}
+                    <button class="no-print mt-2 text-blue-600 text-xs font-semibold" onclick="addProfessionalContact()">+ ${t.newContact || '新联系方式'}</button>
+                </div>
+                ${(resumeData.sections.left || []).map((section, sIdx) => `<div class="section relative group"><div class="action-button btn-remove" style="top:0;right:-5px;" onclick="removeProfessionalSection('left', ${sIdx})">&times;</div><h3 class="section-title" contenteditable="true" data-path="sections.left.${sIdx}.title">${section.title}</h3>${section.isList ? `<ul class="text-sm">${(section.items || []).map((item, iIdx) => `<li class="relative group/item mb-1"><div class="action-button btn-remove group-hover/item:opacity-100" style="top:0;right:0;" onclick="removeProfessionalItem('left', ${sIdx}, ${iIdx})">&times;</div><span contenteditable="true" data-path="sections.left.${sIdx}.items.${iIdx}">${item}</span></li>`).join('')}</ul><button class="no-print mt-2 text-blue-600 text-xs font-semibold" onclick="addProfessionalItem('left', ${sIdx})">+ ${t.newSkill || '新技能'}</button>` : `<div contenteditable="true" data-path="sections.left.${sIdx}.content" class="text-sm">${section.content}</div>`}</div>`).join('')}
+            </div>
+            <div class="right-column">
+                ${(resumeData.sections.right || []).map((section, sIdx) => `<div class="section relative group"><div class="action-button btn-remove" style="top:0;right:-5px;" onclick="removeProfessionalSection('right', ${sIdx})">&times;</div><h3 class="section-title" contenteditable="true" data-path="sections.right.${sIdx}.title">${section.title}</h3>${(section.entries || []).map((entry, eIdx) => `<div class="entry relative group/entry"><div class="action-button btn-remove" style="top:5px;right:0;" onclick="removeProfessionalEntry(${sIdx}, ${eIdx})">&times;</div><div class="action-button btn-add" style="top:5px;right:25px;" onclick="addProfessionalEntryItem(${sIdx}, ${eIdx})">+</div><div class="flex justify-between items-center"><span class="font-bold text-base" contenteditable="true" data-path="sections.right.${sIdx}.entries.${eIdx}.mainTitle">${entry.mainTitle}</span><span class="text-sm italic" contenteditable="true" data-path="sections.right.${sIdx}.entries.${eIdx}.date">${entry.date || ''}</span></div><div class="flex justify-between items-center mb-1"><span class="italic text-sm" contenteditable="true" data-path="sections.right.${sIdx}.entries.${eIdx}.subTitle">${entry.subTitle || ''}</span><span class="text-sm italic" contenteditable="true" data-path="sections.right.${sIdx}.entries.${eIdx}.location">${entry.location || ''}</span></div><ul class="item-list text-sm">${(entry.items || []).map((item, iIdx) => `<li class="item relative group/item"><div class="action-button btn-remove group-hover/item:opacity-100" style="top:0;right:0;" onclick="removeProfessionalEntryItem(${sIdx}, ${eIdx}, ${iIdx})">&times;</div><span contenteditable="true" data-path="sections.right.${sIdx}.entries.${eIdx}.items.${iIdx}">${item}</span></li>`).join('')}</ul></div>`).join('')}<button class="no-print mt-2 text-blue-600 text-sm font-semibold" onclick="addProfessionalEntry(${sIdx})">+ ${t.newEntry}</button></div>`).join('')}
+            </div>`;
+            return page;
+        }
+
+        function attachEventListeners() {
+            document.querySelectorAll('[contenteditable="true"]').forEach(el => {
+                el.addEventListener('blur', (e) => {
+                    const path = e.target.dataset.path;
+                    if(path) { updateDataByPath(path, e.target.innerHTML); saveToLocalStorage(); }
+                });
+            });
+            const photoContainer = document.getElementById('photo-container');
+            if (photoContainer) {
+                photoContainer.addEventListener('click', () => document.getElementById('photo-upload').click());
+            }
+        }
+        
         function updateDataByPath(path, value) {
-            const keys = path.split(/[\.\[\]]/).filter(Boolean);
+            const keys = path.split(/[\.\[\]]/).filter(key => key !== '');
             let current = resumeData;
             for (let i = 0; i < keys.length - 1; i++) {
-                current = current[keys[i]];
+                if (!current[keys[i]]) current[keys[i]] = isNaN(parseInt(keys[i+1])) ? {} : [];
+                current = current[keys[i]]; 
             }
             current[keys[keys.length - 1]] = value;
         }
-
-        // --- 交互功能函数 ---
+        
+        // --- Interactive Functions ---
+        const t = () => translations[currentLang];
+        // General
         window.addSection = function() {
-            const title = prompt("输入新模块的标题 / Enter the title for the new section:", "New Section");
-            if (title) {
-                resumeData.sections.push({
-                    title: title,
-                    entries: [{ mainTitle: "New Entry Title", location: "Location", subTitle: "Subtitle or Role", date: "Date", items: ["New item description."] }]
-                });
-                updateAndRender(resumeData);
-            }
-        }
-        
-        window.removeSection = function(sectionIndex) {
-            if (confirm('确认删除整个模块吗？\nAre you sure you want to delete this entire section?')) {
-                resumeData.sections.splice(sectionIndex, 1);
-                updateAndRender(resumeData);
-            }
-        }
-
-        window.addEntry = function(sectionIndex) {
-            resumeData.sections[sectionIndex].entries.push({ mainTitle: "New Entry Title", location: "Location", subTitle: "Subtitle or Role", date: "Date", items: ["New item description."] });
-            updateAndRender(resumeData);
-        }
-
-        window.removeEntry = function(sectionIndex, entryIndex) {
-            if (confirm('确认删除这个条目吗？\nAre you sure you want to delete this entry?')) {
-                resumeData.sections[sectionIndex].entries.splice(entryIndex, 1);
-                updateAndRender(resumeData);
-            }
-        }
-        
-        window.addItem = function(sectionIndex, entryIndex) {
-            resumeData.sections[sectionIndex].entries[entryIndex].items.push("New item description.");
-            updateAndRender(resumeData);
-        }
-
-        window.removeItem = function(sectionIndex, entryIndex, itemIndex) {
-            const items = resumeData.sections[sectionIndex].entries[entryIndex].items;
-            if (items.length > 1) {
-                items.splice(itemIndex, 1);
-                updateAndRender(resumeData);
+            const title = prompt(t().addSectionPrompt, t().newSection);
+            if (!title) return;
+            if (currentTemplate === 'academic') {
+                resumeData.sections.push({ title: title, entries: [{ title: t().newEntry, items: [t().newListItem] }] });
             } else {
-                alert("这是最后一项描述。如需删除，请直接删除整个条目。\nThis is the last item. To remove it, please delete the entire entry.");
+                const side = prompt("Add to left or right column?", "right");
+                if (side === 'left' || side === 'right') {
+                    resumeData.sections[side].push({ title: title, entries: [{ mainTitle: t().newEntry, items: [t().newListItem] }] });
+                }
             }
+            updateAndRender(resumeData);
+        }
+        window.removeSection = (sIdx) => { if(confirm(t().deleteConfirm)){ resumeData.sections.splice(sIdx,1); updateAndRender(resumeData); } }
+        window.addEntry = (sIdx) => { resumeData.sections[sIdx].entries.push({ title: t().newEntry, items: [t().newListItem] }); updateAndRender(resumeData); }
+        window.removeEntry = (sIdx,eIdx) => { if(confirm(t().deleteConfirm)){ resumeData.sections[sIdx].entries.splice(eIdx,1); updateAndRender(resumeData); } }
+        window.addItem = (sIdx,eIdx) => { if(!resumeData.sections[sIdx].entries[eIdx].items) resumeData.sections[sIdx].entries[eIdx].items = []; resumeData.sections[sIdx].entries[eIdx].items.push(t().newListItem); updateAndRender(resumeData); }
+        window.removeItem = (sIdx,eIdx,iIdx) => { resumeData.sections[sIdx].entries[eIdx].items.splice(iIdx,1); updateAndRender(resumeData); }
+        // Professional specific
+        window.addProfessionalContact = () => { resumeData.contact.push({icon:'💡',value: t().newContact}); updateAndRender(resumeData); }
+        window.removeProfessionalContact = (index) => { resumeData.contact.splice(index,1); updateAndRender(resumeData); }
+        window.addProfessionalItem = (col, sIdx) => { resumeData.sections[col][sIdx].items.push(t().newSkill); updateAndRender(resumeData); }
+        window.removeProfessionalItem = (col, sIdx, iIdx) => { resumeData.sections[col][sIdx].items.splice(iIdx,1); updateAndRender(resumeData); }
+        window.addProfessionalEntry = (sIdx) => { resumeData.sections.right[sIdx].entries.push({ mainTitle:t().newEntry, items:[t().newListItem]}); updateAndRender(resumeData); }
+        window.removeProfessionalEntry = (sIdx,eIdx) => { resumeData.sections.right[sIdx].entries.splice(eIdx,1); updateAndRender(resumeData); }
+        window.addProfessionalEntryItem = (sIdx,eIdx) => { resumeData.sections.right[sIdx].entries[eIdx].items.push(t().newListItem); updateAndRender(resumeData); }
+        window.removeProfessionalEntryItem = (sIdx,eIdx,iIdx) => { resumeData.sections.right[sIdx].entries[eIdx].items.splice(iIdx,1); updateAndRender(resumeData); }
+        window.removeProfessionalSection = (col,sIdx) => { if(confirm(t().deleteConfirm)){ resumeData.sections[col].splice(sIdx,1); updateAndRender(resumeData); } }
+
+        document.getElementById('photo-upload').addEventListener('change', function(e) {
+            if(e.target.files && e.target.files[0]){ const r=new FileReader(); r.onload=function(ev){ resumeData.photoUrl=ev.target.result; updateAndRender(resumeData); }; r.readAsDataURL(e.target.files[0]); }
+        });
+
+        function switchTemplate(templateName) {
+            currentTemplate = templateName;
+            const loadedData = loadFromLocalStorage();
+            updateAndRender(loadedData || getDefaultData(currentTemplate, currentLang), true);
+        }
+        function switchLanguage() {
+            currentLang = currentLang === 'zh' ? 'en' : 'zh';
+            const loadedData = loadFromLocalStorage();
+            updateAndRender(loadedData || getDefaultData(currentTemplate, currentLang), true);
+        }
+
+        function updateUILanguage() {
+            const t = translations[currentLang];
+            document.documentElement.lang = currentLang;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.textContent = t[key];
+            });
+            document.getElementById('app-subtitle').textContent = t.subtitle;
+            document.getElementById('lang-toggle-btn').textContent = currentLang === 'zh' ? t.toggleEN : t.toggleZH;
+            document.getElementById('print-button').textContent = t.print;
+            document.getElementById('print-tooltip-title').textContent = t.printInfoTitle;
+            document.getElementById('print-tooltip-line1').textContent = t.printInfoLine1;
+            document.getElementById('print-tooltip-line2').textContent = t.printInfoLine2;
         }
         
-        // --- 导入/导出 JSON ---
-        function exportJSON() {
-            const jsonString = JSON.stringify(resumeData, null, 2);
-            const blob = new Blob([jsonString], {type: "application/json"});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'resume-data.json';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+        function updateControlState() {
+            document.getElementById('template-professional-btn').classList.toggle('bg-blue-600', currentTemplate === 'professional');
+            document.getElementById('template-professional-btn').classList.toggle('text-white', currentTemplate === 'professional');
+            document.getElementById('template-academic-btn').classList.toggle('bg-blue-600', currentTemplate === 'academic');
+            document.getElementById('template-academic-btn').classList.toggle('text-white', currentTemplate === 'academic');
+            const { fontSize, lineHeight } = resumeData.settings;
+            document.getElementById('font-size-slider').value = fontSize;
+            document.getElementById('line-height-slider').value = lineHeight;
+            updateUILanguage();
+        }
+        
+        function changeSetting(type, value) {
+            resumeData.settings[type] = parseFloat(value);
+            updateAndRender(resumeData);
         }
 
-        function importJSON() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            input.onchange = e => {
-                const file = e.target.files[0];
-                const reader = new FileReader();
-                reader.onload = readerEvent => {
-                    try {
-                        const content = readerEvent.target.result;
-                        const importedData = JSON.parse(content);
-                        // 简单的验证
-                        if (importedData.header && importedData.sections) {
-                            updateAndRender(importedData);
-                            alert('导入成功！/ Import successful!');
-                        } else {
-                            alert('文件格式无效。/ Invalid file format.');
-                        }
-                    } catch (err) {
-                        alert('解析文件失败，请确保是有效的JSON文件。\nFailed to parse file, please ensure it is a valid JSON.');
-                    }
-                }
-                reader.readAsText(file, 'UTF-8');
+        function handleReset() {
+            if (confirm(t().resetConfirm)) {
+                localStorage.removeItem(getStorageKey());
+                updateAndRender(getDefaultData(currentTemplate, currentLang), true);
             }
-            input.click();
         }
 
-        // --- 初始化 ---
         function init() {
-            const loadedData = loadFromLocalStorage();
-            resumeData = loadedData ? loadedData : JSON.parse(JSON.stringify(defaultData)); // 使用深拷贝
-            renderResume();
-
-            document.getElementById('add-section-button').addEventListener('click', window.addSection);
+            document.getElementById('template-professional-btn').addEventListener('click', () => switchTemplate('professional'));
+            document.getElementById('template-academic-btn').addEventListener('click', () => switchTemplate('academic'));
             document.getElementById('print-button').addEventListener('click', () => window.print());
-            document.getElementById('export-button').addEventListener('click', exportJSON);
-            document.getElementById('import-button').addEventListener('click', importJSON);
+            document.getElementById('reset-button').addEventListener('click', handleReset);
+            document.getElementById('lang-toggle-btn').addEventListener('click', switchLanguage);
+            document.getElementById('add-section-button').addEventListener('click', window.addSection);
+
+            const fontSizeSlider = document.getElementById('font-size-slider');
+            fontSizeSlider.addEventListener('input', (e) => { document.querySelector('.page').style.fontSize = `${e.target.value}pt`; });
+            fontSizeSlider.addEventListener('change', (e) => changeSetting('fontSize', e.target.value));
+
+            const lineHeightSlider = document.getElementById('line-height-slider');
+            lineHeightSlider.addEventListener('input', (e) => { document.querySelector('.page').style.lineHeight = e.target.value; });
+            lineHeightSlider.addEventListener('change', (e) => changeSetting('lineHeight', e.target.value));
+            
+            const loadedData = loadFromLocalStorage();
+            updateAndRender(loadedData || getDefaultData(currentTemplate, currentLang), false);
         }
 
         init();
     });
     </script>
-
 </body>
 </html>
