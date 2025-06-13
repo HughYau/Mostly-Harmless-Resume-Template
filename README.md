@@ -1,4 +1,4 @@
-# OneResume: An Interactive Resume Builder
+# OneResumeISAll: An Interactive Resume Builder
 
 一个支持 LaTeX 和 Web 的交互式简历模板。
 
