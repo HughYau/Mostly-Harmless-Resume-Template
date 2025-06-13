@@ -1,4 +1,4 @@
-# Resume-Craft: An Interactive Resume Builder
+# OneResume: An Interactive Resume Builder
 
 一个支持 LaTeX 和 Web 的交互式简历模板。
 
@@ -26,7 +26,7 @@
 
 ### **如何使用 (How to Use)**
 
-1. **在线体验 (Live Demo):** [https://hughyau.com/](https://hughyau.com/)
+1. **在线体验 (Live Demo):** [https://hughyau.com/](https://hughyau.com/oneresume/)
 
 2. **本地使用 (Local Use):** 下载本项目，在你的浏览器中直接打开 index.html 文件。
 
